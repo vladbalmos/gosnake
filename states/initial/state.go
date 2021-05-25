@@ -5,34 +5,34 @@ import "github.com/vladbalmos/gosnake/states"
 import "github.com/vladbalmos/gosnake/states/running"
 
 type State struct {
-    *core.State
+	*core.State
 }
 
 func New() *State {
-    return &State{
-        &core.State{
-            Score: 0,
-            Snake: nil,
-            Food: nil,
-            MessageForPlayer: "Press SPACE to start the game",
-        },
-    }
+	return &State{
+		&core.State{
+			Score: 0,
+			Snake: nil,
+			Food: nil,
+			MessageForPlayer: "Press SPACE to start the game",
+		},
+	}
 }
 
 func (s *State) Transition(event *core.Event) core.TransitionFunction {
-    if event.IsSpace() {
-        return transitionToRunning
-    }
+	if event.IsSpace() {
+		return transitionToRunning
+	}
 
-    if event.IsQuit() {
-        return states.TransitionToQuit
-    }
+	if event.IsQuit() {
+		return states.TransitionToQuit
+	}
 
-    return nil
+	return nil
 }
 
 func transitionToRunning(s core.StateTransitioner) core.StateTransitioner {
-    r := running.New()
-    return r
+	r := running.New()
+	return r
 }
 

@@ -1,25 +1,30 @@
 // +build amd64
 package main
 
-import "fmt"
-//import "github.com/vladbalmos/gosnake/states/initial"
-//import "github.com/rthornton128/goncurses"
-
-type P struct {
-    x uint
-}
-
-type S struct {
-    P
-}
-
-type S1 struct {
-    P
-}
+import (
+	"fmt"
+	"time"
+	"github.com/vladbalmos/gosnake/core"
+)
 
 func main() {
-    a := &S{P{1}}
-    b := &S1{P{2}}
+	screen := core.NewScreen()
+	defer screen.Cleanup()
+	screen.Refresh()
 
-    fmt.Println(a.P == b.P)
+	eventLoop := core.NewEventLoop(screen)
+
+	eventChannel := make(chan core.Event)
+	go eventLoop.Start(eventChannel)
+
+	for {
+		ev := <-eventChannel
+		if ev.IsQuit() {
+			break
+		}
+
+		fmt.Println(ev)
+		time.Sleep(time.Duration(500) * time.Millisecond)
+	}
+
 }
