@@ -46,6 +46,9 @@ func NewScreen() *Screen {
 	}
 }
 
+func (s *Screen) ShowMessage(msg string) {
+// CLEATOEOL
+}
 
 func (s *Screen) Refresh() {
 	gc.Update()

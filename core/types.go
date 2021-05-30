@@ -11,17 +11,18 @@ type Event struct {
 
 // Game state
 type State struct {
+	Id uint
+	Paused bool
+	Running bool
+	Quit bool
 	Score uint
 	Snake *Snake
 	Food *Food
 	MessageForPlayer string
 }
 
-type StateTransitioner interface{
-	Transition(event *Event) TransitionFunction
-}
-
-type TransitionFunction func(s StateTransitioner) StateTransitioner;
+type TransitionTable func(event *Event) TransitionFunction
+type TransitionFunction func(s *State) *State
 
 
 type Snake struct {

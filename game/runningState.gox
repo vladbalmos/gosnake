@@ -22,6 +22,10 @@ func New() *State {
 	}
 }
 
+func (s *State) GetScore() uint {
+	return s.Score
+}
+
 func (s *State) Transition(event *core.Event) core.TransitionFunction {
 	if event.IsSpace() {
 		return transitionToPlayPause
