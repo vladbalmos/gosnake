@@ -35,8 +35,8 @@ func (ev *Event) IsSpace() bool {
 	return ev.Name == "space"
 }
 
-func (ev *Event) IsCollision() bool {
-	return ev.Name == "collision"
+func (ev *Event) IsNoInput() bool {
+	return ev.Name == EV_NO_INPUT
 }
 
 func (ev *Event) IsQuit() bool {

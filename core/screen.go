@@ -1,21 +1,21 @@
 package core
 
 import (
+	//"fmt"
 	gc "github.com/rthornton128/goncurses"
 )
 
 const GAME_AREA_RATIO = .75
 
-type Point struct {
-	X uint
-	Y uint
-}
-
 type Screen struct {
 	mainWindow *gc.Window
 	gameWindow *gc.Window
-	width uint
-	height uint
+	width int
+	height int
+	GameWindowX int
+	GameWindowY int
+	GameAreaWidth int
+	GameAreaHeight int
 }
 
 type Key gc.Key
@@ -35,23 +35,78 @@ func NewScreen() *Screen {
 
 	maxHeight, maxWidth := mainWindow.MaxYX()
 
-	gameWindow := newGameWindow(mainWindow)
+	center := &Point{
+		X: maxWidth / 2,
+		Y: maxHeight / 2,
+	}
+
+	gameWindow, gameWindowX, gameWindowY, gameAreaWidth, gameAreaHeight := newGameWindow(mainWindow, center)
 	mainWindow.Border(gc.ACS_VLINE, gc.ACS_VLINE, gc.ACS_HLINE, gc.ACS_HLINE, gc.ACS_ULCORNER, gc.ACS_URCORNER, gc.ACS_LLCORNER, gc.ACS_LRCORNER)
 
 	return &Screen{
 		mainWindow: mainWindow,
 		gameWindow: gameWindow,
-		width: uint(maxWidth),
-		height: uint(maxHeight),
+		width: maxWidth,
+		height: maxHeight,
+		GameWindowX: gameWindowX,
+		GameWindowY: gameWindowY,
+		GameAreaWidth: gameAreaWidth,
+		GameAreaHeight: gameAreaHeight,
+	}
+}
+
+func (s *Screen) Center() Point {
+	p := Point{
+		X: s.width / 2,
+		Y: s.height / 2,
+	}
+
+	return p
+}
+
+func (s *Screen) GameAreaCenter() Point {
+	p := Point{
+		X: s.GameAreaWidth / 2,
+		Y: s.GameAreaHeight / 2,
+	}
+
+	return p
+}
+
+func (s *Screen) HideMessage() {
+	charsToClear := s.width - 2
+	for i := 0; i < charsToClear; i++ {
+		s.mainWindow.MovePrint(s.GameWindowY - 2, i + 1, " ")
 	}
 }
 
 func (s *Screen) ShowMessage(msg string) {
-// CLEATOEOL
+	y := s.GameWindowY - 2
+	x := s.Center().X - len(msg) / 2
+	s.mainWindow.MovePrint(y, x, msg)
+}
+
+func (s *Screen) ShowScore(score uint) {
+	y := s.GameWindowY + s.GameAreaHeight + 1
+	x := s.GameWindowX
+	s.mainWindow.MovePrint(y, x, "Score: ", score)
+}
+
+func (s *Screen) DrawFood(coords Point) {
+	s.gameWindow.MovePrint(coords.Y, coords.X, "ø");
+}
+
+func (s *Screen) DrawSnakeSegment(coords Point) {
+	s.gameWindow.MovePrint(coords.Y, coords.X, "+");
+}
+
+func (s *Screen) EraseGameArea() {
+	s.gameWindow.Erase()
 }
 
 func (s *Screen) Refresh() {
-	gc.Update()
+	s.mainWindow.Refresh()
+	s.gameWindow.Refresh()
 }
 
 func (s *Screen) GetInput() Key {
@@ -62,16 +117,18 @@ func (s *Screen) Cleanup() {
 	gc.End()
 }
 
-func newGameWindow(parent *gc.Window) *gc.Window {
+func newGameWindow(parent *gc.Window, center *Point) (*gc.Window, int, int, int, int) {
 	maxHeight, maxWidth := parent.MaxYX()
-	centerX := maxWidth / 2
-	centerY := maxHeight / 2
+	centerX := int(center.X)
+	centerY := int(center.Y)
 
 	gameAreaWidth := int(float32(maxWidth) * GAME_AREA_RATIO)
 	gameAreaHeight := int(float32(maxHeight) * GAME_AREA_RATIO)
 	x := centerX - (gameAreaWidth / 2)
 	y := centerY - (gameAreaHeight / 2)
-	window := parent.Derived(gameAreaHeight, gameAreaWidth, y, x)
-	window.Border(gc.ACS_VLINE, gc.ACS_VLINE, gc.ACS_HLINE, gc.ACS_HLINE, gc.ACS_ULCORNER, gc.ACS_URCORNER, gc.ACS_LLCORNER, gc.ACS_LRCORNER)
-	return window
+	container := parent.Derived(gameAreaHeight, gameAreaWidth, y, x)
+	container.Border(gc.ACS_VLINE, gc.ACS_VLINE, gc.ACS_HLINE, gc.ACS_HLINE, gc.ACS_ULCORNER, gc.ACS_URCORNER, gc.ACS_LLCORNER, gc.ACS_LRCORNER)
+
+	window := container.Derived(gameAreaHeight - 2, gameAreaWidth - 2, 1, 1)
+	return window, x + 1, y + 1, gameAreaWidth - 2, gameAreaHeight - 2
 }

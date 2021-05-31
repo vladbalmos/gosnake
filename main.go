@@ -6,7 +6,7 @@ import (
 	"github.com/vladbalmos/gosnake/game"
 )
 
-const FPS = 25
+const FPS = 30
 
 func now() uint {
 	return uint(time.Now().UnixNano() / int64(time.Millisecond))

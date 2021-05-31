@@ -1,8 +1,8 @@
 package core
 
-type coords struct {
-	X uint
-	Y uint
+type Point struct {
+	X int
+	Y int
 }
 
 type Event struct {
@@ -16,26 +16,14 @@ type State struct {
 	Running bool
 	Quit bool
 	Score uint
-	Snake *Snake
-	Food *Food
+	Snake Cralwer
+	Food Point
 	MessageForPlayer string
 }
 
-type TransitionTable func(event *Event) TransitionFunction
-type TransitionFunction func(s *State) *State
-
-
-type Snake struct {
-	Head *SnakeSegment
-	Tail *SnakeSegment
-}
-
-type SnakeSegment struct {
-	coords
-	Next *SnakeSegment
-	Prev *SnakeSegment
-}
-
-type Food struct {
-	coords
+type Cralwer interface {
+	Append(x int, y int)
+	Prepend(x int, y int)
+	Traverse(callback interface{})
+	Advance()
 }
