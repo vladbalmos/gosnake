@@ -45,6 +45,23 @@ func NewSnake(length uint) core.Cralwer {
 	return snake
 }
 
+func (s *Snake) HeadCoords() core.Point {
+	return s.Head.Coords
+}
+
+func (s *Snake) IncreaseLength() {
+	switch (s.Direction) {
+	case DIRECTION_EAST:
+		s.Prepend(s.Head.Coords.X + 1, s.Head.Coords.Y)
+	case DIRECTION_SOUTH:
+		s.Prepend(s.Head.Coords.X, s.Head.Coords.Y + 1)
+	case DIRECTION_WEST:
+		s.Prepend(s.Head.Coords.X - 1, s.Head.Coords.Y)
+	case DIRECTION_NORTH:
+		s.Prepend(s.Head.Coords.X, s.Head.Coords.Y - 1)
+	}
+}
+
 func (s *Snake) Append(x int, y int) {
 	segment := &SnakeSegment{
 		Next: s.Tail,
@@ -72,13 +89,14 @@ func (s *Snake) Prepend(x int, y int) {
 }
 
 func (s *Snake) ChangeDirection(dir uint) {
-	if s.isSameAxisDirection(dir) {
+	if s.IsSameAxisDirection(dir) {
 		return
 	}
 
 	var x int = 0
 	var y int = 0
 
+	s.Direction = dir
 	if dir == DIRECTION_EAST {
 		x += 1
 	} else if dir == DIRECTION_WEST {
@@ -109,6 +127,25 @@ func (s *Snake) ChangeDirection(dir uint) {
 		currentSegment = currentSegment.Prev
 	}
 }
+
+func (s *Snake) IsSameAxisDirection(dir uint) bool {
+	if s.Direction == DIRECTION_EAST || s.Direction == DIRECTION_WEST {
+		if dir == DIRECTION_EAST || dir == DIRECTION_WEST {
+			return true
+		}
+
+		return false
+	}
+
+	if s.Direction == DIRECTION_NORTH || s.Direction == DIRECTION_SOUTH {
+		if dir == DIRECTION_NORTH || dir == DIRECTION_SOUTH {
+			return true
+		}
+	}
+
+	return false
+}
+
 
 func (s *Snake) Advance() {
 	var x int
@@ -147,24 +184,6 @@ func (s *Snake) Advance() {
 		currentSegment = currentSegment.Prev
 	}
 
-}
-
-func (s *Snake) isSameAxisDirection(dir uint) bool {
-	if s.Direction == DIRECTION_EAST || s.Direction == DIRECTION_WEST {
-		if dir == DIRECTION_EAST || dir == DIRECTION_WEST {
-			return true
-		}
-
-		return false
-	}
-
-	if s.Direction == DIRECTION_NORTH || s.Direction == DIRECTION_SOUTH {
-		if dir == DIRECTION_NORTH || dir == DIRECTION_SOUTH {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (s *Snake) Traverse(callback interface{}) {

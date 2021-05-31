@@ -93,11 +93,11 @@ func (s *Screen) ShowScore(score uint) {
 }
 
 func (s *Screen) DrawFood(coords Point) {
-	s.gameWindow.MovePrint(coords.Y, coords.X, "ø");
+	s.gameWindow.MovePrint(coords.Y, coords.X, "*");
 }
 
 func (s *Screen) DrawSnakeSegment(coords Point) {
-	s.gameWindow.MovePrint(coords.Y, coords.X, "+");
+	s.gameWindow.MovePrint(coords.Y, coords.X, "*");
 }
 
 func (s *Screen) EraseGameArea() {

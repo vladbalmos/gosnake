@@ -2,6 +2,7 @@ package game
 
 import (
 	//"fmt"
+	"log"
 	"math/rand"
 	"time"
 	"github.com/vladbalmos/gosnake/core"
@@ -11,6 +12,12 @@ const (
 	STATE_INITIAL = 0
 	STATE_RUNNING = 1
 	STATE_PAUSED = 2
+
+	SECOND = 1000
+	FPS = 30
+
+	START_MESSAGE = "Press SPACE to start the game"
+	START_SPEED = 4
 )
 
 type TransitionTable func(event *core.Event) TransitionFunction
@@ -32,8 +39,11 @@ type game struct {
 	screen *core.Screen
 	screenState *screenState
 	state *core.State
-	snakeHeadScreenPos core.Point
+	newPendingDirection int
+	lastAnimationFrameTime uint
+	snakeHeadStartPos core.Point
 	collisionMatrix [][]uint8
+	lastEvent core.Event
 }
 
 func New(screen *core.Screen) *game {
@@ -43,7 +53,8 @@ func New(screen *core.Screen) *game {
 	state := &core.State{
 		Id: STATE_INITIAL,
 		Score: 0,
-		MessageForPlayer: "Press SPACE to start the game",
+		Speed: START_SPEED,
+		MessageForPlayer: START_MESSAGE,
 	}
 
 	collisionMatrix := make([][]uint8, screen.GameAreaWidth)
@@ -57,7 +68,8 @@ func New(screen *core.Screen) *game {
 			lastScore: -1,
 		},
 		screen: screen,
-		snakeHeadScreenPos: screen.GameAreaCenter(),
+		snakeHeadStartPos: screen.GameAreaCenter(),
+		newPendingDirection: -1,
 		collisionMatrix: collisionMatrix,
 	}
 
@@ -74,7 +86,8 @@ func (g *game) Draw() {
 }
 
 func (g *game) Update(ev core.Event) {
-	g.stateTransition(ev)
+	g.lastEvent = ev
+	g.stateTransition()
 }
 
 func (g *game) Quit() bool {
@@ -119,16 +132,30 @@ func (g *game) collisionDetected() bool {
 	return false
 }
 
+func (g *game) caughtFood() bool {
+	translatedHeadCoords := g.translateSnakeSegmentCoords(g.state.Snake.HeadCoords())
+	result := translatedHeadCoords == g.state.Food
+	if result {
+		log.Print("Caught food")
+	}
+	return result
+}
+
+func (g *game) eatFood() {
+	g.state.Snake.IncreaseLength()
+	g.state.Score += 1
+}
+
 func (g *game) translateSnakeSegmentCoords(coords core.Point) core.Point {
 	return core.Point{
-		X: g.snakeHeadScreenPos.X + coords.X,
-		Y: g.snakeHeadScreenPos.Y + coords.Y,
+		X: g.snakeHeadStartPos.X + coords.X,
+		Y: g.snakeHeadStartPos.Y + coords.Y,
 	}
 }
 
-func (g *game) stateTransition(ev core.Event) {
+func (g *game) stateTransition() {
 	transitionTable := transitionsTableFunctions[g.state.Id]
-	transitionFunction := transitionTable(&ev)
+	transitionFunction := transitionTable(&g.lastEvent)
 
 	if transitionFunction == nil {
 		return
@@ -138,7 +165,7 @@ func (g *game) stateTransition(ev core.Event) {
 }
 
 func (g *game) showPlayerMessage() {
-	if g.state.Running {
+	if g.state.Running && !g.state.Paused {
 		if g.screenState.playerMessageVisible {
 			g.screen.HideMessage()
 			g.screenState.playerMessageVisible = false
@@ -192,5 +219,6 @@ func setupTransitionsTables() {
 	transitionsTableFunctions = make(map[uint]TransitionTable)
 	transitionsTableFunctions[STATE_INITIAL] = InitialTransitionTable
 	transitionsTableFunctions[STATE_RUNNING] = RunningTransitionTable
+	transitionsTableFunctions[STATE_PAUSED] = PausedTransitionTable
 }
 

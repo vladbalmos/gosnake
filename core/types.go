@@ -18,12 +18,17 @@ type State struct {
 	Score uint
 	Snake Cralwer
 	Food Point
+	Speed float32
 	MessageForPlayer string
 }
 
 type Cralwer interface {
+	HeadCoords() Point
+	IncreaseLength()
 	Append(x int, y int)
 	Prepend(x int, y int)
 	Traverse(callback interface{})
 	Advance()
+	ChangeDirection(dir uint)
+	IsSameAxisDirection(dir uint) bool
 }

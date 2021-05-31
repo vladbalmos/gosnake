@@ -1,43 +1,28 @@
 package main
 
 import (
-	"time"
+	"log"
+	"os"
 	"github.com/vladbalmos/gosnake/core"
-	"github.com/vladbalmos/gosnake/game"
+	Game "github.com/vladbalmos/gosnake/game"
 )
-
-const FPS = 30
-
-func now() uint {
-	return uint(time.Now().UnixNano() / int64(time.Millisecond))
-}
-
-func wait(start uint) uint {
-	speed := uint(1000 / FPS)
-	delta := now() - start
-	if delta >= speed {
-		return 0
-	}
-
-	waitTime := speed - delta
-
-	time.Sleep(time.Duration(waitTime) * time.Millisecond)
-	return waitTime
-}
 
 func main() {
 	screen := core.NewScreen()
 	defer screen.Cleanup()
 	screen.Refresh()
 
-	game := game.New(screen)
+	f, _ := os.OpenFile("log.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	log.SetOutput(f)
+
+	game := Game.New(screen)
 
 	eventLoop := core.NewEventLoop(screen)
 	eventChannel := make(chan core.Event)
 	go eventLoop.Start(eventChannel)
 
 	for {
-		start := now()
+		start := core.Now()
 
 		// Draw the current game state
 		game.Draw()
@@ -54,7 +39,7 @@ func main() {
 
 		// Paint the screen
 		screen.Refresh()
-		wait(start)
+		core.Wait(start, Game.FPS)
 	}
 
 }
